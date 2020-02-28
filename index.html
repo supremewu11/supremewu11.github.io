@@ -64,6 +64,43 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-用c语言全排列（DFS）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/02/28/%E7%94%A8c%E8%AF%AD%E8%A8%80%E5%85%A8%E6%8E%92%E5%88%97%EF%BC%88DFS%EF%BC%89/" class="article-date">
+  <time datetime="2020-02-28T08:07:19.000Z" itemprop="datePublished">2020-02-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/02/28/%E7%94%A8c%E8%AF%AD%E8%A8%80%E5%85%A8%E6%8E%92%E5%88%97%EF%BC%88DFS%EF%BC%89/">用c语言全排列（DFS）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>全排列的定义：从n个不同元素中任取m（m≤n）个元素，按照一定的顺序排列起来，叫做从n个不同元素<br>中取出m个元素的一个排列[A(m,n)]，当m=n时所有的排列情况叫全排列（n!)。<br>在编程中如何将全排列的每一个结果表示出来呢？全排列的实质就是从第一个数开始（包含第一个），每个数和它后面<br>每一个数交换一次位置。请看下面示意图(用123为示例，手写的，不要介意）：<br><img src="/2020/02/28/%E7%94%A8c%E8%AF%AD%E8%A8%80%E5%85%A8%E6%8E%92%E5%88%97%EF%BC%88DFS%EF%BC%89/2823E4D1818FC44F9A40AD5B484D8662.png" alt="png"><br>下面是相应的代码，可以拷贝自己运行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">int count&#x3D;1;&#x2F;&#x2F;统计次数</span><br><span class="line">char arr[10]&#x3D; &#123;&quot;123&quot;&#125;;</span><br><span class="line"></span><br><span class="line">int outsame(char *arr,int begin,int end)&#x2F;&#x2F;排除相同的排列，比如“113”就只有三种全排列，但如果不用这个函数，会得到6种</span><br><span class="line">&#123;</span><br><span class="line">    int i;</span><br><span class="line">    for (i&#x3D;begin; i&lt;end; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        if (arr[i]&#x3D;&#x3D;arr[end])</span><br><span class="line">            return 0;&#x2F;&#x2F;重复返回0</span><br><span class="line">    &#125;</span><br><span class="line">    return 1;&#x2F;&#x2F;不重复返回1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void swap(char *a,char *b)&#x2F;&#x2F;交换字符</span><br><span class="line">&#123;</span><br><span class="line">    char t;</span><br><span class="line">    t&#x3D;*a;</span><br><span class="line">    *a&#x3D;*b;</span><br><span class="line">    *b&#x3D;t;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void allarrange(char *arr,int low,int high)&#x2F;&#x2F;递归进行全排列，low代表字符串最低为，high代表最高位</span><br><span class="line">&#123;</span><br><span class="line">    int i,j,a,b,c,p;</span><br><span class="line">    if (low&#x3D;&#x3D;high)&#x2F;&#x2F;最低位会向最高位推进，当最低位等于最高位时，一趟排列完成，也就是上面图片上的一条绿线</span><br><span class="line">    &#123;</span><br><span class="line">        printf(&quot;第%d次排列：&quot;,count);</span><br><span class="line">        puts(arr);</span><br><span class="line">        ++count;</span><br><span class="line">        return ;</span><br><span class="line">    &#125;</span><br><span class="line">    for (i&#x3D;low; i&lt;&#x3D;high; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        if (outsame(arr,low,i))&#x2F;&#x2F;将类似于绿线上这样自己与自己交换的情况排除了</span><br><span class="line">        &#123;</span><br><span class="line">            swap(arr+low,arr+i);</span><br><span class="line">            allarrange(arr,low+1,high);</span><br><span class="line">            swap(arr+low,arr+i);&#x2F;&#x2F;回溯，将交换完成后的字符串还原</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main(void)</span><br><span class="line">&#123;</span><br><span class="line">    allarrange(arr,0,2);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/02/28/%E7%94%A8c%E8%AF%AD%E8%A8%80%E5%85%A8%E6%8E%92%E5%88%97%EF%BC%88DFS%EF%BC%89/" data-id="ck75zchn800054cvja71saqts" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-蓝桥-带分数" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/02/22/%E8%93%9D%E6%A1%A5-%E5%B8%A6%E5%88%86%E6%95%B0/" class="article-date">
@@ -98,7 +135,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/02/22/%E8%93%9D%E6%A1%A5-%E5%B8%A6%E5%88%86%E6%95%B0/" data-id="ck6xfrbj10004q4vj4hek4kgj" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2020/02/22/%E8%93%9D%E6%A1%A5-%E5%B8%A6%E5%88%86%E6%95%B0/" data-id="ck75zchn700044cvj52kvbygh" class="article-share-link">Share</a>
       
       
     </footer>
@@ -135,7 +172,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/02/21/While-scanf-d-n-EOF-%E5%A6%82%E4%BD%95%E7%BB%93%E6%9D%9F%E8%BE%93%E5%85%A5/" data-id="ck6xfrbii0000q4vj1qed2pb9" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2020/02/21/While-scanf-d-n-EOF-%E5%A6%82%E4%BD%95%E7%BB%93%E6%9D%9F%E8%BE%93%E5%85%A5/" data-id="ck75zchmx00004cvj808t5nbx" class="article-share-link">Share</a>
       
       
     </footer>
@@ -172,7 +209,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/02/19/int-long-long-long%E7%AD%89%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%8C%83%E5%9B%B4/" data-id="ck6xfrbj00003q4vjdt5c0cz6" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2020/02/19/int-long-long-long%E7%AD%89%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%8C%83%E5%9B%B4/" data-id="ck75zchn500024cvj812wf85b" class="article-share-link">Share</a>
       
       
     </footer>
@@ -210,7 +247,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/01/11/wuheng/" data-id="ck6xfrbiy0002q4vj79azfzb8" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2020/01/11/wuheng/" data-id="ck75zchn600034cvj04w2291d" class="article-share-link">Share</a>
       
       
     </footer>
@@ -259,7 +296,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/01/11/hello-world/" data-id="ck6xfrbix0001q4vj154e62ut" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2020/01/11/hello-world/" data-id="ck75zchn300014cvj80tma2c9" class="article-share-link">Share</a>
       
       
     </footer>
@@ -300,6 +337,10 @@
       <ul>
         
           <li>
+            <a href="/2020/02/28/%E7%94%A8c%E8%AF%AD%E8%A8%80%E5%85%A8%E6%8E%92%E5%88%97%EF%BC%88DFS%EF%BC%89/">用c语言全排列（DFS）</a>
+          </li>
+        
+          <li>
             <a href="/2020/02/22/%E8%93%9D%E6%A1%A5-%E5%B8%A6%E5%88%86%E6%95%B0/">蓝桥 带分数（c语言）</a>
           </li>
         
@@ -313,10 +354,6 @@
         
           <li>
             <a href="/2020/01/11/wuheng/">wuheng</a>
-          </li>
-        
-          <li>
-            <a href="/2020/01/11/hello-world/">Hello World</a>
           </li>
         
       </ul>
